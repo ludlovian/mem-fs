@@ -1,6 +1,6 @@
 {
   "name": "mem-fs",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "In memory filesystem",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
