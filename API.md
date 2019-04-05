@@ -21,27 +21,27 @@ becomes accepted and more generally used.
 - [x] appendFileSync <i>(path, data\[, options\])</i>
 - [x] chmod <i>(path, mode, callback)</i>
 - [x] chmodSync <i>(path, mode)</i>
-- [x] chown <i>(path, uid, gid, callback)/ - see note 1
-- [x] chownSync <i>(path, uid, gid)/ - see note 1
+- [x] chown <i>(path, uid, gid, callback)</i>
+- [x] chownSync <i>(path, uid, gid)</i>
 - [x] close <i>(fd, callback)</i>
 - [x] closeSync <i>(fd)</i>
 - [x] constants
-- [x] copyFile <i>(src, dst\[, flags\], callback)/ - see note 2
-- [x] copyFileSync <i>(src, dst\[, flags\])/ - see note 2
-- [ ] createReadStream <i>(path\[, options\])/ - see note 3
-- [ ] createWriteStream <i>(path\[, options\])/ - see note 3
+- [x] copyFile <i>(src, dst\[, flags\], callback)</i>
+- [x] copyFileSync <i>(src, dst\[, flags\])</i>
+- [ ] createReadStream <i>(path\[, options\])</i>
+- [ ] createWriteStream <i>(path\[, options\])</i>
 - [x] exists <i>(path, callback)</i>
 - [x] existsSync <i>(path)</i>
 - [x] fchmod <i>(fd, mode, callback)</i>
 - [x] fchmodSync <i>(fd, mode)</i>
-- [x] fchown <i>(fd, uid, gid, callback)/ - see note 1
-- [x] fchownSync <i>(fd, uid, gid)/ - see note 1
-- [x] fdatasync <i>(fd, callback)/ - see note 4
-- [x] fdatasyncSync <i>(fd)/ - see note 4
-- [x] fstat <i>(fd\[, options\], callback)/ - see note 5
-- [x] fstatSync <i>(fd\[, options\])/ - see note 5
-- [x] fsync <i>(fd, callback)/ - see note 4
-- [x] fsyncSync <i>(fd)/ - see note 4
+- [x] fchown <i>(fd, uid, gid, callback)</i>
+- [x] fchownSync <i>(fd, uid, gid)</i>
+- [x] fdatasync <i>(fd, callback)</i>
+- [x] fdatasyncSync <i>(fd)</i>
+- [x] fstat <i>(fd\[, options\], callback)</i>
+- [x] fstatSync <i>(fd\[, options\])</i>
+- [x] fsync <i>(fd, callback)</i>
+- [x] fsyncSync <i>(fd)</i>
 - [x] ftruncate <i>(fd\[, len\], callback)</i>
 - [x] ftruncateSync <i>(fd\[, len\])</i>
 - [x] futimes <i>(fd, atime, mtime, callback)</i>
