@@ -10,7 +10,8 @@
     "lint": "standard {src,test}/*.js | snazzy",
     "format": "prettier-standard {src,test}/*.js",
     "test": "nyc ava test/*.js",
-    "coverage": "npm run test && nyc report --reporter=html && http-server coverage/ -p 8000"
+    "coverage": "npm run test && nyc report --reporter=html && http-server coverage/ -p 8000",
+    "build": "rollup -c rollup.config.js"
   },
   "repository": {
     "type": "git",
