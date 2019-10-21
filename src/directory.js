@@ -77,7 +77,7 @@ export default class Directory extends Node {
       if (stepsLeft.length === 1 && toDir) break
 
       step = stepsLeft.shift()
-      let next = node.get(step)
+      const next = node.get(step)
 
       if (followLinks && next instanceof Symlink) {
         if (!next.isRelative) {

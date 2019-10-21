@@ -27,6 +27,7 @@ export default class Node {
   get size () {
     return 512
   }
+
   get perms () {
     return this.mode & 0o777
   }
@@ -71,12 +72,15 @@ export default class Node {
   atouch () {
     this.atimeMs = Date.now()
   }
+
   ctouch () {
     this.atimeMs = this.ctimeMs = Date.now()
   }
+
   mtouch () {
     this.atimeMs = this.mtimeMs = Date.now()
   }
+
   touch () {
     this.atimeMs = this.mtimeMs = this.ctimeMs = Date.now()
   }
