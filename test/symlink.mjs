@@ -20,10 +20,10 @@ test('create with mode', () => {
 
 test('readlink', () => {
   let s = new Symlink('/foo/bar')
-  assert.is(s.readlink(), '/foo/bar')
+  assert.is(s.readlink({}), '/foo/bar')
 
   s = new Symlink('foo/bar')
-  assert.equal(s.readlink('buffer'), Buffer.from('foo/bar'))
+  assert.equal(s.readlink({ encoding: 'buffer' }), Buffer.from('foo/bar'))
   assert.is(s.readlink({ encoding: 'hex' }), '666f6f2f626172')
 })
 

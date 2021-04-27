@@ -16,7 +16,7 @@ test('mkdir', () => {
   foo.mkdir('bar')
   const bar = foo.get('bar')
   assert.is(bar.nlink, 2)
-  assert.equal(foo.readdir(), ['bar'])
+  assert.equal(foo.readdir({}), ['bar'])
   assert.ok(foo.readdir({ withFileTypes: true })[0].isDirectory())
   assert.throws(
     () => foo.mkdir('bar'),
@@ -103,7 +103,7 @@ test('link', () => {
   assert.is(bar.stat().nlink, 1)
   foo.link('baz', bar)
   assert.is(bar.stat().nlink, 2)
-  assert.equal(foo.readdir(), ['bar', 'baz'])
+  assert.equal(foo.readdir({}), ['bar', 'baz'])
   foo.unlink('bar')
   foo.unlink('baz')
   assert.is(bar.stat().nlink, 0)
@@ -122,7 +122,10 @@ test('unlink', () => {
   assert.not.throws(() => foo.unlink('bar'))
 
   foo.mkdir('bar')
-  assert.throws(() => foo.unlink('bar'), e => e.code === 'EISDIR')
+  assert.throws(
+    () => foo.unlink('bar'),
+    e => e.code === 'EISDIR'
+  )
 })
 
 test('move', () => {
@@ -136,13 +139,13 @@ test('move', () => {
   foo.move('baz', bar, 'quux')
   assert.is(bar.get('quux'), baz)
   assert.is(baz.stat().nlink, 2)
-  assert.is(foo.readdir().length, 0)
+  assert.is(foo.readdir({}).length, 0)
 
   // move dir onto empty
   bar.move('quux', foo, 'baz')
   assert.is(foo.get('baz'), baz)
-  assert.equal(foo.readdir(), ['baz'])
-  assert.is(bar.readdir().length, 0)
+  assert.equal(foo.readdir({}), ['baz'])
+  assert.is(bar.readdir({}).length, 0)
   foo.rmdir('baz')
 
   // move file onto file
@@ -152,13 +155,13 @@ test('move', () => {
   foo.move('baz', bar, 'quux')
   assert.is(bar.get('quux'), baz)
   assert.is(baz.stat().nlink, 1)
-  assert.is(foo.readdir().length, 0)
+  assert.is(foo.readdir({}).length, 0)
 
   // move file onto empty
   bar.move('quux', foo, 'baz')
   assert.is(foo.get('baz'), baz)
-  assert.equal(foo.readdir(), ['baz'])
-  assert.is(bar.readdir().length, 0)
+  assert.equal(foo.readdir({}), ['baz'])
+  assert.is(bar.readdir({}).length, 0)
   foo.unlink('baz')
 })
 
@@ -167,7 +170,7 @@ test('readdir', () => {
   foo.mkfile('baz')
   foo.symlink('bar', '/baz')
 
-  assert.equal(foo.readdir('hex'), ['626172', '62617a'])
+  assert.equal(foo.readdir({ encoding: 'hex' }), ['626172', '62617a'])
   assert.is(foo.readdir({ encoding: 'buffer' })[0].toString(), 'bar')
   assert.ok(foo.readdir({ withFileTypes: true })[1].isFile())
 

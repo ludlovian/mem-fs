@@ -17,7 +17,8 @@ export default class Filesystem {
   }
 
   mkdir (path, options = {}) {
-    validate('S|SZ|SO|SN', arguments)
+    validate('S', [path])
+    validate('N|O', [options])
 
     if (typeof options === 'number') options = { mode: options }
     const { recursive = false, mode } = options
@@ -117,22 +118,28 @@ export default class Filesystem {
     return this.root.lfind(path).node.utimes(atime, mtime)
   }
 
-  readlink (path, options) {
-    validate('S|SZ|SO|SS', arguments)
+  readlink (path, options = {}) {
+    validate('S', [path])
+    validate('S|O', [options])
+    if (typeof options === 'string') options = { encoding: options }
     const { node: symlink } = this.root.lfind(path)
     if (!(symlink instanceof Symlink)) throw makeError('EINVAL')
     return symlink.readlink(options)
   }
 
-  readdir (path, options) {
-    validate('S|SZ|SO|SS', arguments)
+  readdir (path, options = {}) {
+    validate('S', [path])
+    validate('S|O', [options])
+    /* c8 ignore next */
+    if (typeof options === 'string') options = { encoding: options }
     const { node: dir } = this.root.find(path)
     if (!(dir instanceof Directory)) throw makeError('ENOTDIR')
     return dir.readdir(options)
   }
 
   realpath (path, options = {}) {
-    validate('S|SZ|SO|SS', arguments)
+    validate('S', [path])
+    validate('S|O', [options])
     if (typeof options === 'string') options = { encoding: options }
     const { encoding = 'utf8' } = options
     const { path: realpath } = this.root.find(path)
@@ -140,7 +147,7 @@ export default class Filesystem {
   }
 
   access (path, mode = C.F_OK) {
-    validate('S|SZ|SN', arguments)
+    validate('SN', [path, mode])
     try {
       const { node } = this.root.find(path)
       return node.access(mode)
@@ -219,16 +226,16 @@ export default class Filesystem {
     }
   }
 
-  appendFile (source, data, options = {}) {
-    validate('S|N', [source])
+  appendFile (dest, data, options = {}) {
+    validate('S|N', [dest])
     validate('S|O', [data])
     validate('S|O', [options])
     if (typeof options === 'string') options = { encoding: options }
     const { encoding = 'utf8', flag = 'a', mode = 0o666 } = options
-    if (typeof source === 'number') {
-      return File.get(source).appendFile(data, { encoding })
+    if (typeof dest === 'number') {
+      return File.get(dest).appendFile(data, { encoding })
     }
-    const fh = this.open(source, flag, mode)
+    const fh = this.open(dest, flag, mode)
     try {
       return fh.appendFile(data, { encoding })
     } finally {
@@ -237,14 +244,15 @@ export default class Filesystem {
   }
 
   copyFile (sourcePath, destinationPath, flags = 0) {
-    validate('SS|SSZ|SSN', arguments)
+    validate('SS', [sourcePath, destinationPath])
+    validate('N', [flags])
     const flag = flags & C.COPYFILE_EXCL ? 'wx' : 'w'
     const data = this.readFile(sourcePath)
     this.writeFile(destinationPath, data, { flag })
   }
 
-  mkdtemp (prefix, options) {
-    validate('S|SZ|SS|SO', arguments)
+  mkdtemp (prefix, options = {}) {
+    validate('S', [prefix])
     while (true) {
       const path =
         prefix +
@@ -255,7 +263,7 @@ export default class Filesystem {
         this.mkdir(path)
         return this.realpath(path, options)
       } catch (err) {
-        // istanbul ignore else
+        /* c8 ignore next */
         if (err.code !== 'EEXIST') throw err
       }
     }

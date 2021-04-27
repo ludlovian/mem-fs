@@ -10,8 +10,6 @@ export const DEFAULT_FILE_MODE = 0o666 & ~process.umask()
 
 export default class File extends Node {
   constructor (mode = DEFAULT_FILE_MODE) {
-    validate('N|Z|', arguments)
-
     super((mode & 0o777) | C.S_IFREG)
     this.data = Buffer.allocUnsafe(0)
   }
@@ -21,8 +19,6 @@ export default class File extends Node {
   }
 
   truncate (size = 0) {
-    validate('N|', arguments)
-
     if (size <= this.size) {
       this.data = this.data.slice(0, size)
     } else {
@@ -32,8 +28,6 @@ export default class File extends Node {
   }
 
   open (flags) {
-    validate('N', arguments)
-
     if ((flags & 3) === C.O_RDONLY) {
       this.ensureReadAccess()
     } else if ((flags & 3) === C.O_WRONLY) {
@@ -78,25 +72,22 @@ class Filehandle {
     if ((this._flags & 3) === C.O_RDONLY) throw makeError('EACCES')
   }
 
-  write (buffer, ...args) {
-    validate('S|O', [buffer])
-
-    let offset
-    let length
-    let position
-    let encoding
-    if (typeof buffer === 'string') {
-      validate('|N|NS', args)
-      ;[position, encoding = 'utf8'] = args
-      buffer = Buffer.from(buffer, encoding)
-      length = buffer.length
-      offset = 0
+  write (...args) {
+    let [buffer, offset, length, position, encoding] = []
+    // buffer[, offset[, length[, position]]]
+    // string[, position[, encoding]
+    if (typeof args[0] === 'string') {
+      validate('S|SN|SNS', args)
+      position = args[1]
+      encoding = args[2] || 'utf8'
+      buffer = Buffer.from(args[0], encoding)
     } else {
-      validate('|N|NN|NNN', args)
-      ;[offset, length, position] = args
-      if (offset == null) offset = 0
-      if (length == null) length = buffer.length - offset
+      validate('O|ON|ONN|ONNN', args)
+      ;[buffer, offset, length, position] = args
     }
+
+    if (offset == null) offset = 0
+    if (length == null) length = buffer.length - offset
 
     this._ensureWritable()
     if (position != null) this._setPos(position)
@@ -111,7 +102,10 @@ class Filehandle {
   }
 
   read (buffer, offset, length, position) {
-    validate('ONNN|ONNZ|ONN', arguments)
+    validate('O', [buffer])
+    /* c8 ignore next 2 */
+    offset = typeof offset === 'number' ? offset : 0
+    length = typeof length === 'number' ? length : buffer.byteLength
     this._ensureReadble()
     const start =
       position == null ? this._pos : minmax(position, 0, this.file.size)
@@ -133,7 +127,7 @@ class Filehandle {
   }
 
   readFile (options = {}) {
-    validate('O|S|', arguments)
+    validate('O|S', [options])
 
     if (typeof options === 'string') options = { encoding: options }
     const { encoding } = options

@@ -1,8 +1,6 @@
 import { constants as C, Dirent as fsDirent } from 'fs'
 import { resolve } from 'path'
 
-import validate from 'aproba'
-
 import Node from './node.mjs'
 import Symlink from './symlink.mjs'
 import File from './file.mjs'
@@ -16,13 +14,11 @@ export const DEFAULT_FILE_MODE = 0o666 & ~process.umask()
 
 export default class Directory extends Node {
   constructor (mode = DEFAULT_DIR_MODE) {
-    validate('|N|Z', arguments)
     super((mode & 0o777) | C.S_IFDIR)
     this._links = new Map()
   }
 
   get (name) {
-    validate('S', arguments)
     this.ensureExecuteAccess()
     const node = this._links.get(name)
     if (!node) throw makeError('ENOENT')
@@ -30,14 +26,11 @@ export default class Directory extends Node {
   }
 
   has (name) {
-    validate('S', arguments)
     this.ensureReadAccess()
     return this._links.has(name)
   }
 
   set (name, node) {
-    validate('SO', arguments)
-
     this.ensureWriteAccess()
     if (this._links.has(name)) throw makeError('EEXIST')
     this._links.set(name, node)
@@ -53,7 +46,6 @@ export default class Directory extends Node {
   }
 
   delete (name) {
-    validate('S', arguments)
     const node = this.get(name)
     this.ensureWriteAccess()
     this._links.delete(name)
@@ -111,7 +103,6 @@ export default class Directory extends Node {
   }
 
   mkdir (name, mode) {
-    validate('S|SZ|SN', arguments)
     const subdir = new Directory(mode)
     try {
       this.set(name, subdir)
@@ -124,14 +115,12 @@ export default class Directory extends Node {
   }
 
   mkfile (name, mode) {
-    validate('S|SZ|SN', arguments)
     const file = new File(mode)
     this.set(name, file)
     return file
   }
 
   rmdir (name) {
-    validate('S', arguments)
     const subdir = this.get(name)
     if (!(subdir instanceof Directory)) throw makeError('ENOTDIR')
     if (!subdir.isEmpty()) throw makeError('ENOTEMPTY')
@@ -141,27 +130,22 @@ export default class Directory extends Node {
   }
 
   symlink (name, target) {
-    validate('SS', arguments)
     const symlink = new Symlink(target)
     this.set(name, symlink)
   }
 
   link (name, node) {
-    validate('SO', arguments)
     if (node instanceof Directory) throw makeError('EPERM')
     this.set(name, node)
   }
 
   unlink (name) {
-    validate('S', arguments)
     const node = this.get(name)
     if (node instanceof Directory) throw makeError('EISDIR')
     this.delete(name)
   }
 
   move (name, newDir, newName) {
-    validate('SOS', arguments)
-
     this.ensureWriteAccess()
     newDir.ensureWriteAccess()
     const node = this.get(name)
@@ -180,10 +164,7 @@ export default class Directory extends Node {
     this.delete(name)
   }
 
-  readdir (options = {}) {
-    validate('|O|S', arguments)
-    if (typeof options === 'string') options = { encoding: options }
-    const { encoding = 'utf8', withFileTypes = false } = options
+  readdir ({ encoding = 'utf8', withFileTypes = false }) {
     return Array.from(this._links.keys())
       .filter(name => name !== '.' && name !== '..')
       .sort()

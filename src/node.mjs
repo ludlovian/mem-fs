@@ -1,7 +1,5 @@
 import { Stats, constants as C } from 'fs'
 
-import validate from 'aproba'
-
 import { makeError } from './errors.mjs'
 import { inodes } from './id.mjs'
 
@@ -64,8 +62,6 @@ export default class Node {
   }
 
   setPerms (perms) {
-    validate('N', arguments)
-
     this.mode = (this.mode & ~0o777) | (perms & 0o777)
   }
 
@@ -139,20 +135,16 @@ export default class Node {
   ensureOwner () {}
 
   chmod (mode) {
-    validate('N', arguments)
     this.ensureOwner()
     this.setPerms(mode)
     this.ctouch()
   }
 
   chown (uid, gid) {
-    validate('NN', arguments)
     throw makeError('ENOSYS')
   }
 
   utimes (atime, mtime) {
-    validate('N|O|S', [atime])
-    validate('N|O|S', [mtime])
     this.ensureOwner()
     this.atimeMs = timeInMs(atime)
     this.mtimeMs = timeInMs(mtime)
@@ -160,7 +152,6 @@ export default class Node {
   }
 
   access (mode) {
-    validate('N', arguments)
     if ((mode & C.R_OK) !== 0 && !this.checkReadAccess()) return false
     if ((mode & C.W_OK) !== 0 && !this.checkWriteAccess()) return false
     if ((mode & C.X_OK) !== 0 && !this.checkExecuteAccess()) return false
