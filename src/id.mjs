@@ -1,5 +1,3 @@
-'use strict'
-
 class IdPool {
   constructor (start) {
     this.next = start

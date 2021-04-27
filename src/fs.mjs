@@ -1,9 +1,8 @@
-'use strict'
-
 import { constants, Stats, ReadStream, WriteStream } from 'fs'
-import Filesystem from './filesystem'
-import File from './file'
-import { errorContext } from './errors'
+
+import Filesystem from './filesystem.mjs'
+import File from './file.mjs'
+import { errorContext } from './errors.mjs'
 
 export default class MemFS {
   constructor () {
@@ -135,7 +134,10 @@ function makeFdMethod (fs, name) {
 function makeAsync (fn) {
   return (...args) => {
     const cb = getCallback(args)
-    exec(() => fn(...args)).then(result => cb(null, result), error => cb(error))
+    exec(() => fn(...args)).then(
+      result => cb(null, result),
+      error => cb(error)
+    )
   }
 }
 

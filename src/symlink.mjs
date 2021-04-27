@@ -1,16 +1,15 @@
-'use strict'
-
 import { constants as C } from 'fs'
-import Node from './node'
-import { encode } from './util'
-import ow from 'ow'
+
+import validate from 'aproba'
+
+import Node from './node.mjs'
+import { encode } from './util.mjs'
 
 const DEFAULT_FILE_MODE = 0o666 & ~process.umask()
 
 export default class Symlink extends Node {
   constructor (target, mode = DEFAULT_FILE_MODE) {
-    ow(target, ow.string.nonEmpty)
-    ow(mode, ow.number.integer)
+    validate('SN|S', arguments)
 
     super((mode & 0o777) | C.S_IFLNK)
     this.isRelative = target[0] !== '/'
@@ -23,7 +22,7 @@ export default class Symlink extends Node {
   }
 
   readlink (options = {}) {
-    ow(options, 'encodingOrOptions', ow.any(ow.string, ow.object))
+    validate('S|Z|O|', arguments)
     if (typeof options === 'string') options = { encoding: options }
     const { encoding = 'utf8' } = options
     const target = (this.isRelative ? '' : '/') + this._steps.join('/')

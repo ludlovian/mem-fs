@@ -1,13 +1,13 @@
-'use strict'
-
-import Directory from './directory'
-import File from './file'
-import Symlink from './symlink'
-import { dirname } from 'path'
 import { constants as C } from 'fs'
-import ow from 'ow'
-import { makeError } from './errors'
-import { encode } from './util'
+import { dirname } from 'path'
+
+import validate from 'aproba'
+
+import Directory from './directory.mjs'
+import File from './file.mjs'
+import Symlink from './symlink.mjs'
+import { makeError } from './errors.mjs'
+import { encode } from './util.mjs'
 
 export default class Filesystem {
   constructor () {
@@ -17,8 +17,7 @@ export default class Filesystem {
   }
 
   mkdir (path, options = {}) {
-    ow(path, 'path', ow.string.nonEmpty)
-    ow(options, 'modeOrOptions', ow.any(ow.number.integer, ow.object))
+    validate('S|SZ|SO|SN', arguments)
 
     if (typeof options === 'number') options = { mode: options }
     const { recursive = false, mode } = options
@@ -35,104 +34,105 @@ export default class Filesystem {
   }
 
   rmdir (path) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('S', arguments)
     if (path === '/') throw makeError('EPERM')
     const { node: dir, name } = this.root.findDir(path)
     dir.rmdir(name)
   }
 
   symlink (target, path) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('SS', arguments)
     const { node: dir, name } = this.root.findDir(path)
     dir.symlink(name, target)
   }
 
   link (path, newPath) {
-    ow(path, 'path', ow.string.nonEmpty)
-    ow(newPath, 'newPath', ow.string.nonEmpty)
+    validate('SS', arguments)
     const { node } = this.root.lfind(path)
     const { node: dir, name } = this.root.findDir(newPath)
     dir.link(name, node)
   }
 
   unlink (path) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('S', arguments)
     const { node: dir, name } = this.root.findDir(path)
     dir.unlink(name)
   }
 
   rename (path, newPath) {
-    ow(path, 'path', ow.string.nonEmpty)
-    ow(newPath, 'newPath', ow.string.nonEmpty)
+    validate('SS', arguments)
     const { node: srcDir, name: srcName } = this.root.findDir(path)
     const { node: dstDir, name: dstName } = this.root.findDir(newPath)
     srcDir.move(srcName, dstDir, dstName)
   }
 
   stat (path) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('S', arguments)
     return this.root.find(path).node.stat()
   }
 
   lstat (path) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('S', arguments)
     return this.root.lfind(path).node.stat()
   }
 
   chmod (path, mode) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('SN', arguments)
     return this.root.find(path).node.chmod(mode)
   }
 
   lchmod (path, mode) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('SN', arguments)
     return this.root.lfind(path).node.chmod(mode)
   }
 
   chown (path, uid, gid) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('SNN', arguments)
     return this.root.find(path).node.chown(uid, gid)
   }
 
   lchown (path, uid, gid) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('SNN', arguments)
     return this.root.lfind(path).node.chown(uid, gid)
   }
 
   truncate (path, size = 0) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('S|SZ|SN', arguments)
     const { node: file } = this.root.find(path)
     if (!(file instanceof File)) throw makeError('EISDIR')
     file.truncate(size)
   }
 
   utimes (path, atime, mtime) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('S', [path])
+    validate('S|N|O', [atime])
+    validate('S|N|O', [mtime])
     return this.root.find(path).node.utimes(atime, mtime)
   }
 
   lutimes (path, atime, mtime) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('S', [path])
+    validate('S|N|O', [atime])
+    validate('S|N|O', [mtime])
     return this.root.lfind(path).node.utimes(atime, mtime)
   }
 
   readlink (path, options) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('S|SZ|SO|SS', arguments)
     const { node: symlink } = this.root.lfind(path)
     if (!(symlink instanceof Symlink)) throw makeError('EINVAL')
     return symlink.readlink(options)
   }
 
   readdir (path, options) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('S|SZ|SO|SS', arguments)
     const { node: dir } = this.root.find(path)
     if (!(dir instanceof Directory)) throw makeError('ENOTDIR')
     return dir.readdir(options)
   }
 
   realpath (path, options = {}) {
-    ow(path, 'path', ow.string.nonEmpty)
-    ow(options, 'encodingOrOptions', ow.any(ow.string, ow.object))
+    validate('S|SZ|SO|SS', arguments)
     if (typeof options === 'string') options = { encoding: options }
     const { encoding = 'utf8' } = options
     const { path: realpath } = this.root.find(path)
@@ -140,7 +140,7 @@ export default class Filesystem {
   }
 
   access (path, mode = C.F_OK) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('S|SZ|SN', arguments)
     try {
       const { node } = this.root.find(path)
       return node.access(mode)
@@ -150,6 +150,7 @@ export default class Filesystem {
   }
 
   exists (path) {
+    validate('S', arguments)
     try {
       this.stat(path)
       return true
@@ -159,7 +160,9 @@ export default class Filesystem {
   }
 
   open (path, flags, mode) {
-    ow(path, 'path', ow.string.nonEmpty)
+    validate('S', [path])
+    validate('Z|N|S', [flags])
+    validate('N|Z', [mode])
     flags = decodeOpenFlags(flags)
 
     if ((flags & C.O_CREAT) === 0) {
@@ -184,12 +187,8 @@ export default class Filesystem {
   }
 
   readFile (source, options = {}) {
-    ow(
-      source,
-      'fileNameOrDescriptor',
-      ow.any(ow.number.integer, ow.string.nonEmpty)
-    )
-    ow(options, 'encodingOrOptions', ow.any(ow.string.nonEmpty, ow.object))
+    validate('S|N', [source])
+    validate('S|O', [options])
     if (typeof options === 'string') options = { encoding: options }
     const { encoding, flag = 'r' } = options
     if (typeof source === 'number') {
@@ -204,12 +203,8 @@ export default class Filesystem {
   }
 
   writeFile (source, data, options = {}) {
-    ow(
-      source,
-      'fileNameOrDescriptor',
-      ow.any(ow.number.integer, ow.string.nonEmpty)
-    )
-    ow(options, 'encodingOrOptions', ow.any(ow.string.nonEmpty, ow.object))
+    validate('S|N', [source])
+    validate('S|O', [options])
     if (typeof options === 'string') options = { encoding: options }
     const { encoding = 'utf8', flag = 'w', mode = 0o666 } = options
 
@@ -225,12 +220,9 @@ export default class Filesystem {
   }
 
   appendFile (source, data, options = {}) {
-    ow(
-      source,
-      'fileNameOrDescriptor',
-      ow.any(ow.number.integer, ow.string.nonEmpty)
-    )
-    ow(options, 'encodingOrOptions', ow.any(ow.string.nonEmpty, ow.object))
+    validate('S|N', [source])
+    validate('S|O', [data])
+    validate('S|O', [options])
     if (typeof options === 'string') options = { encoding: options }
     const { encoding = 'utf8', flag = 'a', mode = 0o666 } = options
     if (typeof source === 'number') {
@@ -245,16 +237,14 @@ export default class Filesystem {
   }
 
   copyFile (sourcePath, destinationPath, flags = 0) {
-    ow(sourcePath, 'sourcePath', ow.string.nonEmpty)
-    ow(destinationPath, 'destinationPath', ow.string.nonEmpty)
-    ow(flags, ow.number.integer)
+    validate('SS|SSZ|SSN', arguments)
     const flag = flags & C.COPYFILE_EXCL ? 'wx' : 'w'
     const data = this.readFile(sourcePath)
     this.writeFile(destinationPath, data, { flag })
   }
 
   mkdtemp (prefix, options) {
-    ow(prefix, 'prefix', ow.string.nonEmpty)
+    validate('S|SZ|SS|SO', arguments)
     while (true) {
       const path =
         prefix +

@@ -1,16 +1,16 @@
-'use strict'
-
-import Node from './node'
-import { fds } from './id'
 import { constants as C } from 'fs'
-import { makeError } from './errors'
-import ow from 'ow'
+
+import validate from 'aproba'
+
+import Node from './node.mjs'
+import { fds } from './id.mjs'
+import { makeError } from './errors.mjs'
 
 export const DEFAULT_FILE_MODE = 0o666 & ~process.umask()
 
 export default class File extends Node {
   constructor (mode = DEFAULT_FILE_MODE) {
-    ow(mode, ow.number.integer)
+    validate('N|Z|', arguments)
 
     super((mode & 0o777) | C.S_IFREG)
     this.data = Buffer.allocUnsafe(0)
@@ -21,7 +21,7 @@ export default class File extends Node {
   }
 
   truncate (size = 0) {
-    ow(size, ow.number.integer)
+    validate('N|', arguments)
 
     if (size <= this.size) {
       this.data = this.data.slice(0, size)
@@ -32,7 +32,8 @@ export default class File extends Node {
   }
 
   open (flags) {
-    ow(flags, ow.number.integer)
+    validate('N', arguments)
+
     if ((flags & 3) === C.O_RDONLY) {
       this.ensureReadAccess()
     } else if ((flags & 3) === C.O_WRONLY) {
@@ -78,23 +79,21 @@ class Filehandle {
   }
 
   write (buffer, ...args) {
-    ow(buffer, 'stringOrBuffer', ow.any(ow.buffer, ow.string))
+    validate('S|O', [buffer])
+
     let offset
     let length
     let position
     let encoding
     if (typeof buffer === 'string') {
+      validate('|N|NS', args)
       ;[position, encoding = 'utf8'] = args
-      ow(position, 'position', ow.optional.number.integer)
-      ow(encoding, 'encoding', ow.string.nonEmpty)
       buffer = Buffer.from(buffer, encoding)
       length = buffer.length
       offset = 0
     } else {
+      validate('|N|NN|NNN', args)
       ;[offset, length, position] = args
-      ow(offset, 'offset', ow.optional.number.integer)
-      ow(length, 'length', ow.optional.number.integer)
-      ow(position, 'position', ow.optional.number.integer)
       if (offset == null) offset = 0
       if (length == null) length = buffer.length - offset
     }
@@ -112,10 +111,7 @@ class Filehandle {
   }
 
   read (buffer, offset, length, position) {
-    ow(buffer, 'buffer', ow.buffer)
-    ow(offset, 'offset', ow.number.integer)
-    ow(length, 'length', ow.number.integer)
-    ow(position, 'position', ow.optional.number.integer)
+    validate('ONNN|ONNZ|ONN', arguments)
     this._ensureReadble()
     const start =
       position == null ? this._pos : minmax(position, 0, this.file.size)
@@ -127,8 +123,8 @@ class Filehandle {
   }
 
   appendFile (data, options = {}) {
-    ow(options, 'encodingOrOptions', ow.any(ow.string.nonEmpty, ow.object))
-    ow(data, 'data', ow.any(ow.buffer, ow.string))
+    validate('O|S', [data])
+    validate('O|S', [options])
 
     if (typeof options === 'string') options = { encoding: options }
     const { encoding = 'utf8' } = options
@@ -137,7 +133,8 @@ class Filehandle {
   }
 
   readFile (options = {}) {
-    ow(options, 'encodingOrOptions', ow.any(ow.string.nonEmpty, ow.object))
+    validate('O|S|', arguments)
+
     if (typeof options === 'string') options = { encoding: options }
     const { encoding } = options
     const buffer = Buffer.alloc(this.file.size)

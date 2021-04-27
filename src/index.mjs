@@ -1,5 +1,3 @@
-'use strict'
-
 /**
  * MemFS
  *
@@ -24,7 +22,7 @@
  *
  */
 
-import MemFS from './fs'
+import MemFS from './fs.mjs'
 const fs = new MemFS()
 
 export { fs, MemFS }

@@ -1,13 +1,13 @@
-'use strict'
-
-import Node from './node'
-import Symlink from './symlink'
-import File from './file'
 import { constants as C, Dirent as fsDirent } from 'fs'
 import { resolve } from 'path'
-import { makeError } from './errors'
-import { encode } from './util'
-import ow from 'ow'
+
+import validate from 'aproba'
+
+import Node from './node.mjs'
+import Symlink from './symlink.mjs'
+import File from './file.mjs'
+import { makeError } from './errors.mjs'
+import { encode } from './util.mjs'
 
 export const DEFAULT_DIR_MODE = 0o777 & ~process.umask()
 export const DEFAULT_FILE_MODE = 0o666 & ~process.umask()
@@ -16,13 +16,13 @@ export const DEFAULT_FILE_MODE = 0o666 & ~process.umask()
 
 export default class Directory extends Node {
   constructor (mode = DEFAULT_DIR_MODE) {
-    ow(mode, ow.number)
+    validate('|N|Z', arguments)
     super((mode & 0o777) | C.S_IFDIR)
     this._links = new Map()
   }
 
   get (name) {
-    ow(name, ow.string)
+    validate('S', arguments)
     this.ensureExecuteAccess()
     const node = this._links.get(name)
     if (!node) throw makeError('ENOENT')
@@ -30,15 +30,13 @@ export default class Directory extends Node {
   }
 
   has (name) {
-    ow(name, ow.string)
+    validate('S', arguments)
     this.ensureReadAccess()
     return this._links.has(name)
   }
 
   set (name, node) {
-    ow(name, ow.string.nonEmpty)
-    ow(name, ow.string.not.matches(/\//))
-    ow(node, ow.object.instanceOf(Node))
+    validate('SO', arguments)
 
     this.ensureWriteAccess()
     if (this._links.has(name)) throw makeError('EEXIST')
@@ -55,6 +53,7 @@ export default class Directory extends Node {
   }
 
   delete (name) {
+    validate('S', arguments)
     const node = this.get(name)
     this.ensureWriteAccess()
     this._links.delete(name)
@@ -112,8 +111,7 @@ export default class Directory extends Node {
   }
 
   mkdir (name, mode) {
-    ow(name, 'name', ow.string.nonEmpty)
-    ow(mode, 'mode', ow.optional.number.integer)
+    validate('S|SZ|SN', arguments)
     const subdir = new Directory(mode)
     try {
       this.set(name, subdir)
@@ -126,15 +124,14 @@ export default class Directory extends Node {
   }
 
   mkfile (name, mode) {
-    ow(name, ow.string.nonEmpty)
-    ow(mode, ow.optional.number.integer)
+    validate('S|SZ|SN', arguments)
     const file = new File(mode)
     this.set(name, file)
     return file
   }
 
   rmdir (name) {
-    ow(name, 'name', ow.string.nonEmpty)
+    validate('S', arguments)
     const subdir = this.get(name)
     if (!(subdir instanceof Directory)) throw makeError('ENOTDIR')
     if (!subdir.isEmpty()) throw makeError('ENOTEMPTY')
@@ -144,30 +141,26 @@ export default class Directory extends Node {
   }
 
   symlink (name, target) {
-    ow(name, 'name', ow.string.nonEmpty)
-    ow(target, 'target', ow.string.nonEmpty)
+    validate('SS', arguments)
     const symlink = new Symlink(target)
     this.set(name, symlink)
   }
 
   link (name, node) {
-    ow(name, 'name', ow.string.nonEmpty)
-    ow(node, ow.object.instanceOf(Node))
+    validate('SO', arguments)
     if (node instanceof Directory) throw makeError('EPERM')
     this.set(name, node)
   }
 
   unlink (name) {
-    ow(name, 'name', ow.string.nonEmpty)
+    validate('S', arguments)
     const node = this.get(name)
     if (node instanceof Directory) throw makeError('EISDIR')
     this.delete(name)
   }
 
   move (name, newDir, newName) {
-    ow(name, 'name', ow.string.nonEmpty)
-    ow(newDir, 'newDir', ow.object.instanceOf(Directory))
-    ow(newName, 'newName', ow.string.nonEmpty)
+    validate('SOS', arguments)
 
     this.ensureWriteAccess()
     newDir.ensureWriteAccess()
@@ -188,7 +181,7 @@ export default class Directory extends Node {
   }
 
   readdir (options = {}) {
-    ow(options, 'encodingOrOptions', ow.any(ow.string, ow.object))
+    validate('|O|S', arguments)
     if (typeof options === 'string') options = { encoding: options }
     const { encoding = 'utf8', withFileTypes = false } = options
     return Array.from(this._links.keys())

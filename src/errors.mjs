@@ -1,5 +1,3 @@
-'use strict'
-
 export const errorContext = {
   command: '',
   path: '',
@@ -14,7 +12,7 @@ export const errorContext = {
 }
 
 export function makeError (code) {
-  // istanbul ignore next
+  /* c8 ignore next */
   const text = errorMessages[code] || errorMessages.UNKNOWN
   const msg = `${code}: ${text}${errorContext.format()}`
   const err = new Error(msg)

@@ -1,9 +1,9 @@
-'use strict'
-
 import { Stats, constants as C } from 'fs'
-import { makeError } from './errors'
-import { inodes } from './id'
-import ow from 'ow'
+
+import validate from 'aproba'
+
+import { makeError } from './errors.mjs'
+import { inodes } from './id.mjs'
 
 export default class Node {
   constructor (mode) {
@@ -64,7 +64,7 @@ export default class Node {
   }
 
   setPerms (perms) {
-    ow(perms, ow.number)
+    validate('N', arguments)
 
     this.mode = (this.mode & ~0o777) | (perms & 0o777)
   }
@@ -139,22 +139,20 @@ export default class Node {
   ensureOwner () {}
 
   chmod (mode) {
-    ow(mode, 'mode', ow.number.integer)
+    validate('N', arguments)
     this.ensureOwner()
     this.setPerms(mode)
     this.ctouch()
   }
 
   chown (uid, gid) {
-    ow(uid, 'uid', ow.number.integer)
-    ow(gid, 'gid', ow.number.integer)
+    validate('NN', arguments)
     throw makeError('ENOSYS')
   }
 
   utimes (atime, mtime) {
-    const validTime = ow.any(ow.string.matches(/^[\d.]+$/), ow.number, ow.date)
-    ow(atime, 'atime', validTime)
-    ow(mtime, 'mtime', validTime)
+    validate('N|O|S', [atime])
+    validate('N|O|S', [mtime])
     this.ensureOwner()
     this.atimeMs = timeInMs(atime)
     this.mtimeMs = timeInMs(mtime)
@@ -162,7 +160,7 @@ export default class Node {
   }
 
   access (mode) {
-    ow(mode, 'accessMode', ow.number.integer.inRange(0, 7))
+    validate('N', arguments)
     if ((mode & C.R_OK) !== 0 && !this.checkReadAccess()) return false
     if ((mode & C.W_OK) !== 0 && !this.checkWriteAccess()) return false
     if ((mode & C.X_OK) !== 0 && !this.checkExecuteAccess()) return false

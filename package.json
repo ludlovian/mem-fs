@@ -2,16 +2,15 @@
   "name": "mem-fs",
   "version": "1.0.1",
   "description": "In memory filesystem",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "source": "src/index.js",
+  "main": "src/index.js",
+  "module": "src/index.mjs",
+  "source": "src/index.mjs",
   "scripts": {
     "clean": "rm -rf dist/ coverage/ .nyc_output/ node_modules/.cache/",
-    "lint": "standard {src,test}/*.js | snazzy",
-    "format": "prettier-standard {src,test}/*.js",
-    "test": "nyc ava test/*.js",
-    "coverage": "npm run test && nyc report --reporter=html && http-server coverage/ -p 8000",
-    "build": "rollup -c rollup.config.js"
+    "lint": "standard {src,test}/*.mjs | snazzy",
+    "format": "prettier-standard {src,test}/*.mjs",
+    "test": "c8 uvu",
+    "coverage": "npm run test && c8 report --reporter=html && sirv coverage/ -p 8000 -H 0.0.0.0"
   },
   "repository": {
     "type": "git",
@@ -19,24 +18,10 @@
   },
   "author": "",
   "license": "Unlicense",
-  "devDependencies": {
-    "ava": "^2.4.0",
-    "esm": "^3.2.25",
-    "http-server": "^0.11.1",
-    "nyc": "^14.1.1",
-    "prettier-standard": "^15.0.1",
-    "rollup": "^1.25.1",
-    "rollup-plugin-cleanup": "^3.1.1",
-    "rollup-plugin-terser": "^5.1.2",
-    "snazzy": "^8.0.0",
-    "standard": "^14.3.1"
-  },
-  "ava": {
-    "require": [
-      "esm"
-    ]
-  },
   "dependencies": {
-    "ow": "^0.14.0"
+    "aproba": "^2.0.0"
+  },
+  "devDependencies": {
+    "uvu": "^0.5.1"
   }
 }
